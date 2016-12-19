@@ -1,0 +1,3 @@
+Imperial:d=4, o=5, b=50:e, e, e, 8c, 16p, 16g, e, 8c, 16p, 16g, e, p, b, b, b, 8c6, 16p, 16g, d#, 8c, 16p, 16g, e, 8p
+
+
