@@ -1,34 +1,32 @@
 Convenzioni:
 	T -> Tosa
 	R -> Riki
-	
+
 	[n] 			-> compito assegnato a n
-	(n:commento)	-> commento di n 
+	(n:commento)	-> commento di n
 	{x} 			-> da fare dopo x
 
 Lista di cose da fare:
 
 	Lato ELE:
-	
+
 		1. decidere bene quali sensori e led mettere
 		2. testare su breadboard i collegamenti {1}
 		3. creare scheda elettronica [T] {2}
-		
+
 	Lato SW:
-		
-		1. decidere algoritmo di ricerca bluetooth (T: ne ho già uno in mente semplice ed efficace)
+
+		1. decidere algoritmo di ricerca bluetooth (T: ne ho giï¿½ uno in mente semplice ed efficace)
 		2. decidere protocollo di comunicazione (T: testuale dovrebbe essere ok)
-		3. libreria sensore di prossimità
+		3. libreria sensore di prossimitï¿½
 		4. libreria controllo led
 		5. libreria controllo motori ben fatta
-	
+
 	Lato ESTETICO/HW:
-	
-		1. trovare terza ruota
+
+		1. trovare terza ruota (R: dovrei averla in qualche scatolone)
 		2. decidere modello da stampare e dimensione
 		3. decidere come montare i motori alla struttura
 		4. dotarsi di carta igienica e colla vinilica
 		5. fare i tacchini
-		6: decidere quale battery bank usare
-	
-	
+		6. decidere quale battery bank usare (R: io ho uno, devo controllare quale batteria funziona meglio)
