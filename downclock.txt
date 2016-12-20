@@ -1,0 +1,2 @@
+Per disabilitare cores:
+	https://www.raspberrypi.org/forums/viewtopic.php?f=29&t=99372

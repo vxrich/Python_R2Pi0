@@ -1,0 +1,12 @@
+Testato su rpi3
+
+Installazione pacchetti per libreria bluetooth:
+
+	sudo apt-get update
+	sudo apt-get install bluetooth bluez python-bluez  blueman -y
+
+Bluetooth setup:
+https://www.raspberrypi.org/forums/viewtopic.php?t=138145&f=28
+	
+Documentazione
+https://github.com/karulis/pybluez

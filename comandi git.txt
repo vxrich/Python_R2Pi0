@@ -6,3 +6,4 @@ git add .: aggiunge tutti i file alla repo
 git remote add origin <url-repo>: aggiunge la repo remota con il nome di origin
 git remote -v: boh
 git clone <url>: clona repo remoto in curr dir
+git rm <nomefile>: rimuove un file dal repo
