@@ -1,12 +1,38 @@
-Testato su rpi3
-
+Testato su rpi3 e rpi2 con adattatore bluetooth 2.0
 Installazione pacchetti per libreria bluetooth:
 
 	sudo apt-get update
 	sudo apt-get install bluetooth bluez python-bluez  blueman -y
+	
 
 Bluetooth setup:
-https://www.raspberrypi.org/forums/viewtopic.php?t=138145&f=28
+	https://www.raspberrypi.org/forums/viewtopic.php?t=138145&f=28
+	
+per scanning:
+	sudo hciconfig hci0 up
+	hcitool scan
+	
+pairing (TESTATO, WORKA!!!):
+
+	In bluetoothctl: 
+		power on 
+		scan on 
+		agent on 
+		pairable on
+		default-agent 
+		pair <dev_id> 
+		trust <dev_id> 
+		exit 
+
+	In a shell: 
+		rfcomm bind rfcomm0 <dev_id> 
+
+		do serial port stuff with /dev/rfcomm0 
+
+		rfcomm unbind rfcomm0 
+
+da leggere:
+	http://www.gossamer-threads.com/lists/gentoo/user/286532
 	
 Documentazione
-https://github.com/karulis/pybluez
+	https://github.com/karulis/pybluez
