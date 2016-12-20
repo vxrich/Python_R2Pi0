@@ -1,0 +1,8 @@
+git pull origin master: copia in locale da repo origin branch master
+git commit: commit locale
+git push origin master: aggiorna verso repo remoto origin branch master
+git init: nuovo repo in curr dir
+git add .: aggiunge tutti i file alla repo
+git remote add origin <url-repo>: aggiunge la repo remota con il nome di origin
+git remote -v: boh
+git clone <url>: clona repo remoto in curr dir

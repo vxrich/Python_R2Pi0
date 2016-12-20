@@ -13,21 +13,32 @@ def loadData (nomefile):
 	with open(nomefile, 'r') as note:
 		strnote = note.readline()
 	
-	strnote = strnote.strip('\n')	
+	#Leva a capo e punti
+	strnote = strnote.strip('\n.')	
+	
+	#Separa nelle 3 parti di cui sono composti i file RTTTL:
+	#0. nome -> non usato
+	#1. [ottava_base, bpm, durata_nota] -> valori
+	#2. note
 	tutto = strnote.split(':')
 	valori = tutto[1].split(',')
-	note = tutto[2].split(','  )
+	note = tutto[2].split(',')
 	valoriInit = []
 	
+	#Trasforma in int, leva le lettere e l'uguale
 	for i in valori:
 		valoriInit.append(int(re.search('[0-9]+', i).group(0)))
 	
 	listaNote = []
+	
 	for i in note:
 		i = i.upper()
+		
+		#Separa le 3 info che ci sono per ogni nota: (durata)(nota)(ottava)
 		match = re.search('([0-9]+)?([A-Z#]+)([0-9]+)?', i)
 		tupla = (controllo(match.group(1), valoriInit[0]), match.group(2), controllo(match.group(3), valoriInit[1]))
-		listaNote.append(tupla)		
+		listaNote.append(tupla)
+		
 	return (valoriInit, listaNote)	
 
 def durataControl(durata):
@@ -47,6 +58,7 @@ def durataCalc(durata, bpm):
 	colpo = float((60.0/bpm)*4)
 	return float(colpo/durata)
 
+#Deprecata
 def durataCalcComp(durata, bpm):
 	colpo = float(60.0/bpm)
 	return colpo-float(colpo/durata)
