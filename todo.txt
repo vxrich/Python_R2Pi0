@@ -30,3 +30,10 @@ Lista di cose da fare:
 		4. dotarsi di carta igienica e colla vinilica
 		5. fare i tacchini
 		6. decidere quale battery bank usare (R: io ho uno, devo controllare quale batteria funziona meglio)
+
+	DOCUMENTAZIONE!!! (T: LaTeX??? In tal caso ci penso io)
+	Scriviamo un po di scelte progettuali che abbiamo fatto, misurazioni etc
+	Tipo nel circuitino driver del motore ci sono un sacco di cose da spiegare
+	
+	Poi anche sulla libreria dei motori ci sono certi punti che sono critici mageri
+	se glieli spieghiamo è contenta

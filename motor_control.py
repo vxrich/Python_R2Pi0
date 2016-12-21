@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 #
 #	Autori: Tosatto Davide, Riccardo Grespan
 #
@@ -21,6 +22,8 @@ HIGH = 1
 LOW = 0
 
 DEFAULT_DUTY = 50
+
+#Frequenza pwm bassa in modo da avere l'impulso per partire già a duty basso
 DEFAULT_FREQ = 10
 
 def limit (value, min, max):
@@ -112,6 +115,14 @@ class Motor:
 			speed = limit(-speed, 0, 100)
 			self.backward(speed)
 		else:
+			#se stoppo in modalità SC, quando poi riparto ho dei problemi
+			#probabilmente dovuti al fatto che il pwm è simulato con DMA
+			#e perciò ottengo delle accelerazioni indesiderate dovute 
+			#al fatto che i buffer dei 2 pwm erano a 1 e non si possono flushare.
+			#Il problema permane se stoppo i pwm, sembra che comunque continui a
+			#mandare fuori bit fino alla fine del buffer
+			#In modalità FL, invece, essendo entrambi i PWM impostati a 0, 
+			#non ho problemi
 			self.stop(MODE_FL)
 			
 		self._speed = speed
@@ -228,7 +239,8 @@ class MovementController:
 		
 if __name__ == "__main__":
 	#TEST
-	
+	import blue
+	import bluetooth
 	
 	#Test Motor
 	GPIO.setmode(GPIO.BCM)
@@ -244,6 +256,24 @@ if __name__ == "__main__":
 	#time.sleep(100)
 	
 	#ctrl.rotate(10)
+	
+	client_sock,address = blue.acceptConnection()
+	print "Accepted connection from ",address
+	
+	data = ""
+	
+	while data!="exit":
+		data = client_sock.recv(1024)
+		data = data.strip('\n')	
+		print "received [%s]" % data
+		
+		if(data.startswith("s ")):
+			speed = data.split(" ")[1]
+			ctrl.move(int(speed))
+		
+		client_sock.send("ok")
+		
+	client_sock.close()
 	
 	for i in reversed(range(-100, 0, 5)):
 			ctrl.move(i)
