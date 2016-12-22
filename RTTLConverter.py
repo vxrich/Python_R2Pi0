@@ -39,7 +39,6 @@ def loadData (nomefile):
 		tupla = (controllo(match.group(1), valoriInit[0]), match.group(2), controllo(match.group(3), valoriInit[1]))
 		listaNote.append(tupla)
 		
-		
 	return (valoriInit, listaNote)	
 
 def durataControl(durata):
