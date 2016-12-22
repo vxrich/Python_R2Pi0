@@ -26,7 +26,7 @@ def connect(addr):
 	sock = bluetooth.BluetoothSocket (bluetooth.L2CAP)
 	sock.connect((addr, 0x1001))
 	
-def acceptConnection():
+def acceptConnection(timeout = 0):
 	"""
 		Si mette in ascolto per una nuova connessione.
 		E' bloccante. Ritrona una tupla (socket, indirizzo)
@@ -37,11 +37,24 @@ def acceptConnection():
 	server_sock.bind(("",port))
 	server_sock.listen(1)
 	
-	print "Listening"
+	if  timeout != 0:
+		server_sock.setblocking(0)
+		server_sock.settimeout(timeout)
+	
+	# print "Listening"
 
-	res = server_sock.accept()
-	server_sock.close()
-	return res
+	try:
+	
+		res = server_sock.accept()
+		
+		return res
+		
+	except bluetooth.BluetoothError:
+		
+		return None
+		
+	finally:
+		server_sock.close()
 
 #Main, per test
 if (__name__=="__main__"):

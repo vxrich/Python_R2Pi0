@@ -24,7 +24,7 @@ LOW = 0
 DEFAULT_DUTY = 50
 
 #Frequenza pwm bassa in modo da avere l'impulso per partire già a duty basso
-DEFAULT_FREQ = 10
+DEFAULT_FREQ = 30
 
 def limit (value, min, max):
 	if value < min:
@@ -87,19 +87,21 @@ class Motor:
 		else:
 			pwm.ChangeDutyCycle(duty)
 		
+		
+		
 	def forward (self, duty=DEFAULT_DUTY):
 #		print "Forward %d" % duty
-		self._pwm_backward.ChangeDutyCycle(0)
+		self._pwm_forward.ChangeDutyCycle(100)
 		
-		self._pwm_forward.ChangeDutyCycle(duty)
+		self._pwm_backward.ChangeDutyCycle(100 - duty)
 		
 		self._state = self._FORWARD
 		
 	def backward (self, duty=DEFAULT_DUTY):
 #		print "Backward %d" % duty
-		self._pwm_forward.ChangeDutyCycle(0)
+		self._pwm_backward.ChangeDutyCycle(100)
 		
-		self._pwm_backward.ChangeDutyCycle(duty)
+		self._pwm_forward.ChangeDutyCycle(100 - duty)
 		
 		self._state = self._BACKWARD
 		
@@ -123,7 +125,7 @@ class Motor:
 			#mandare fuori bit fino alla fine del buffer
 			#In modalità FL, invece, essendo entrambi i PWM impostati a 0, 
 			#non ho problemi
-			self.stop(MODE_FL)
+			self.stop(MODE_SC)
 			
 		self._speed = speed
 		
@@ -156,11 +158,11 @@ class Motor:
 	def getSpeed (self):
 		return delf._speed
 
-DX_FW = 23
-DX_BW = 24
+SX_FW = 19
+SX_BW = 26
 
-SX_FW = 10
-SX_BW = 11
+DX_FW = 24
+DX_BW = 23
 		
 class MovementController:
 	
@@ -169,9 +171,13 @@ class MovementController:
 	_speed = 0
 	_rotation = 0
 	
-	def __init__ (self):
+	#correzione in % sulla velocità (per farlo andare dritto)
+	_correction = 0
+	
+	def __init__ (self, correction=0):
 		self._MOTOR_DX = Motor(DX_FW, DX_BW)
 		self._MOTOR_SX = Motor(SX_FW, SX_BW)
+		self._correction = correction
 		
 	def initialize(self):
 		self._MOTOR_DX.initialize()
@@ -195,6 +201,8 @@ class MovementController:
 				speed: velocita' di movimento (>0 -> avanti | <0 -> indietro)
 				rotation: velocita' di rotazione (>0 -> orario | <0 -> antiorario)
 		"""
+		
+		rotation += (self._correction*speed)/100
 		
 		dx_speed = speed
 		sx_speed = speed
@@ -257,41 +265,50 @@ if __name__ == "__main__":
 	
 	#ctrl.rotate(10)
 	
-	client_sock,address = blue.acceptConnection()
-	print "Accepted connection from ",address
+	# client_sock,address = blue.acceptConnection()
+	# print "Accepted connection from ",address
 	
-	data = ""
+	# data = ""
 	
-	while data!="exit":
-		data = client_sock.recv(1024)
-		data = data.strip('\n')	
-		print "received [%s]" % data
+	# while data!="exit":
+		# data = client_sock.recv(1024)
+		# data = data.strip('\n')	
+		# print "received [%s]" % data
 		
-		if(data.startswith("s ")):
-			speed = data.split(" ")[1]
-			ctrl.move(int(speed))
+		# if(data.startswith("s ")):
+			# speed = data.split(" ")[1]
+			# ctrl.move(int(speed))
 		
-		client_sock.send("ok")
+		# client_sock.send("ok")
 		
-	client_sock.close()
+	# client_sock.close()
 	
-	for i in reversed(range(-100, 0, 5)):
-			ctrl.move(i)
-			time.sleep(0.1)
+	# for i in reversed(range(-100, 0, 5)):
+			# ctrl.move(i)
+			# time.sleep(0.1)
 	
-	for i in range(10):
+	# for i in range(10):
 	
-		for i in range(-100, 0, 5):
-			ctrl.move(i)
-			time.sleep(0.1)
+		# for i in range(-100, 0, 5):
+			# ctrl.move(i)
+			# time.sleep(0.1)
 			
 			
-		for i in range(0, 100, 5):
-			ctrl.move(i)
-			time.sleep(0.1)
+		# for i in range(0, 100, 5):
+			# ctrl.move(i)
+			# time.sleep(0.1)
 			
-		for i in reversed(range(-100, 100, 5)):
-			ctrl.move(i)
-			time.sleep(0.1)	
+		# for i in reversed(range(-100, 100, 5)):
+			# ctrl.move(i)
+			# time.sleep(0.1)	
 		
+	ctrl.move(70)
+	time.sleep(3)
+	
+	ctrl.stop()
+	time.sleep(1)
+	
+	ctrl.move(-70)
+	time.sleep(3)
+	
 	GPIO.cleanup()
