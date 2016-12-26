@@ -31,9 +31,14 @@ def acceptConnection(timeout = 0):
 		Si mette in ascolto per una nuova connessione.
 		E' bloccante. Ritrona una tupla (socket, indirizzo)
 	"""
+	
+	name="rpi2"
+	target_name="siggen"
+	uuid="00001101-0000-1000-8000-00805F9B34FB"
+	
 	server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
 		
-	port = 1
+	port = bluetooth.PORT_ANY
 	server_sock.bind(("",port))
 	server_sock.listen(1)
 	

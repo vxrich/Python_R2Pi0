@@ -18,14 +18,18 @@ class Server:
 		self._commands = commands
 		t = threading.Thread(target=self._cycle)
 		self._cycle_thread = t
-		t.start()
+		
+	def start(self):
+		self._cycle_thread.start()
 		
 	def _cycle (self):
 		while not self._stop:
 			conn = blue.acceptConnection(0.5)
 			
 			if conn != None:
-				self._subservers.append(Subserver(conn, self._commands))
+				subs = Subserver(conn, self._commands)
+				subs.start()
+				self._subservers.append(subs)
 			
 	def stop (self):
 		self._stop = True
@@ -44,21 +48,24 @@ class Subserver:
 	
 	def  __init__ (self, connection, commands, blocking=False):
 	
-		#Socket impostato su non blocking -> NO, se impostato fa errori vari!
 		connection[0].setblocking(0)
 		connection[0].settimeout(0.5)
 	
 		self._connection, self._addr = connection
-		self._commands = commands
+		self._commands = commands		
 		
+		print "Subserver created"
+		
+	def start(self, blocking=False):
+	
 		if not blocking:
 			t = threading.Thread(target=self._cycle)
 			self._thread = t
 			t.start()
 		else:
 			self._cycle()
-		
-		print "Subserver created"
+			
+		print "Subserver started"
 		
 	def _executeCommand (self, data):
 		cmd = data.split( )
@@ -112,6 +119,10 @@ if __name__=="__main__":
 	ctrl = motor_control.MovementController()
 	ctrl.initialize()
 	
+	def end ():
+		mainsrv.stop()
+		GPIO.cleanup()
+	
 	def s (cmd, srv):
 	
 		try:
@@ -140,9 +151,12 @@ if __name__=="__main__":
 	cmd = {"s": s, "r": r, "exit": exit}
 	
 	mainsrv = Server(cmd)
+	mainsrv.start()
 	
-	def end ():
-		mainsrv.stop()
-		GPIO.cleanup()
+	raw_input("Press Enter to exit...")
+	
+	end()
+	
+	
 	
 	
