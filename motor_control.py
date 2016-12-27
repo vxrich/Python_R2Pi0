@@ -12,6 +12,8 @@
 import RPi.GPIO as GPIO 
 import time
 import threading
+import pinout
+import RTTLPlayer as player
 
 #Modalita' di spegnimento motore:
 # MODE_SC: Short Circuit: pone il motore a massa da entrambi i pin in modo da farlo fremare prima
@@ -159,11 +161,13 @@ class Motor:
 	def getSpeed (self):
 		return delf._speed
 
-SX_FW = 19
-SX_BW = 26
+SX_FW = pinout.MOTOR_SX_FW
+SX_BW = pinout.MOTOR_SX_BW
 
-DX_FW = 24
-DX_BW = 23
+DX_FW = pinout.MOTOR_DX_FW
+DX_BW = pinout.MOTOR_DX_BW
+		
+EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS = 0
 		
 class MovementController:
 	
@@ -181,11 +185,24 @@ class MovementController:
 	_watchdog_value = False
 	_watchdog_stop = False
 	
+	_listeners = []
+	
+	
 	def __init__ (self, correction=0):
 		self._MOTOR_DX = Motor(DX_FW, DX_BW)
 		self._MOTOR_SX = Motor(SX_FW, SX_BW)
 		self._correction = correction
+	
+	def _fireEvent (self, evt, param):
+		for lst in self._listeners:
+			lst(evt, param)
+	
+	def addEventListener (self, lst):
+		self._listeners.append(lst)
 		
+	def removeEventListener(self, lst):
+		self._listeners.remove(lst)
+	
 	def initialize(self):
 		self._MOTOR_DX.initialize()
 		self._MOTOR_SX.initialize()
@@ -209,6 +226,7 @@ class MovementController:
 			if (not self._watchdog_value) and (self._rotation != 0 or self._speed != 0):
 				print "WATCHDOG ENDED WITH NO ACTIONS. Stopping the robot for safety."
 				self.stop()
+				self._fireEvent(EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS, None)
 			self._watchdog_value = False
 		
 	def stop (self):
@@ -281,8 +299,11 @@ if __name__ == "__main__":
 	import blue
 	import bluetooth
 	
+	
+	
 	#Test Motor
 	GPIO.setmode(GPIO.BCM)
+	
 	motor = Motor(23,24)
 	motor.initialize()
 	

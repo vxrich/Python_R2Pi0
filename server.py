@@ -6,6 +6,7 @@ import threading
 import select
 
 
+
 TIMEOUT = 0.5
 
 class Server:
@@ -110,55 +111,4 @@ class Subserver:
 
 if __name__=="__main__":
 	
-	import time
-	import motor_control
-	import RPi.GPIO as GPIO
-	
-	GPIO.setmode(GPIO.BCM)
-	
-	ctrl = motor_control.MovementController()
-	ctrl.initialize()
-	ctrl.startWatchdog()
-	
-	def end ():
-		mainsrv.stop()
-		GPIO.cleanup()
-		ctrl.stopWatchdog()
-	
-	def s (cmd, srv):
-	
-		try:
-			ctrl.move(float(cmd[1]))
-			srv.send("ok")
-		except ValueError:
-			srv.send("ko")
-		print "Speed to %s" % cmd[1]
-	
-	def r (cmd, srv):
-		try:
-			ctrl.rotate(float(cmd[1]))
-			srv.send("ok")
-		except ValueError:
-			srv.send("ko")
-		print "Rotation speed to %s" % cmd[1]
-		
-	def exit (cmd, srv):
-		srv.send("ok")
-		
-		t = threading.Thread(target=end)
-		t.start()
-		
-		print "Exited"
-	
-	cmd = {"s": s, "r": r, "exit": exit}
-	
-	mainsrv = Server(cmd)
-	mainsrv.start()
-	
-	raw_input("Press Enter to exit...")
-	
-	end()
-	
-	
-	
-	
+	import r2pi0_V2
