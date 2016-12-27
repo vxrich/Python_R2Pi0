@@ -31,6 +31,14 @@ pairing (TESTATO, WORKA!!!):
 
 		rfcomm unbind rfcomm0 
 
+va abilitata la modalità compatibilità:
+
+	https://www.raspberrypi.org/forums/viewtopic.php?f=63&t=133263
+
+	Edit /etc/systemd/system/dbus-org.bluez.service and add '-C' after 'bluetoothd'. Reboot.
+
+	poi sudo sdptool add SP
+
 da leggere:
 	http://www.gossamer-threads.com/lists/gentoo/user/286532
 	

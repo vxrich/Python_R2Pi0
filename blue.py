@@ -32,15 +32,24 @@ def acceptConnection(timeout = 0):
 		E' bloccante. Ritrona una tupla (socket, indirizzo)
 	"""
 	
-	name="rpi2"
-	target_name="siggen"
-	uuid="00001101-0000-1000-8000-00805F9B34FB"
+	name="r2pi0"
+	uuid="94f39d29-7d6d-437d-973b-fba39e49d4ee"
+	
+	
+
 	
 	server_sock=bluetooth.BluetoothSocket( bluetooth.RFCOMM )
+		
+	
 		
 	port = bluetooth.PORT_ANY
 	server_sock.bind(("",port))
 	server_sock.listen(1)
+	
+	bluetooth.advertise_service( server_sock, name,
+                           service_id = uuid,
+                           service_classes = [ uuid, bluetooth.SERIAL_PORT_CLASS ],
+                           profiles = [ bluetooth.SERIAL_PORT_PROFILE ] )
 	
 	if  timeout != 0:
 		server_sock.setblocking(0)
