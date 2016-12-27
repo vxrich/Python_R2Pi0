@@ -118,10 +118,12 @@ if __name__=="__main__":
 	
 	ctrl = motor_control.MovementController()
 	ctrl.initialize()
+	ctrl.startWatchdog()
 	
 	def end ():
 		mainsrv.stop()
 		GPIO.cleanup()
+		ctrl.stopWatchdog()
 	
 	def s (cmd, srv):
 	

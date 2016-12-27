@@ -11,6 +11,7 @@
 
 import RPi.GPIO as GPIO 
 import time
+import threading
 
 #Modalita' di spegnimento motore:
 # MODE_SC: Short Circuit: pone il motore a massa da entrambi i pin in modo da farlo fremare prima
@@ -174,6 +175,12 @@ class MovementController:
 	#correzione in % sulla velocità (per farlo andare dritto)
 	_correction = 0
 	
+	#Dati del watchdog
+	_watchdog_thread = None
+	_watchdog_time = 0.2
+	_watchdog_value = False
+	_watchdog_stop = False
+	
 	def __init__ (self, correction=0):
 		self._MOTOR_DX = Motor(DX_FW, DX_BW)
 		self._MOTOR_SX = Motor(SX_FW, SX_BW)
@@ -184,7 +191,29 @@ class MovementController:
 		self._MOTOR_SX.initialize()
 		self.stop()
 		
+	def startWatchdog(self):
+		if (self._watchdog_thread == None):
+			self._watchdog_thread = threading.Thread(target=self._wdCycle)
+			self._watchdog_thread.start()
+	
+	def stopWatchdog(self):
+	
+		if (self._watchdog_thread != None):
+			self._watchdog_stop = True
+			self._watchdog_thread.join()
+			self._watchdog_thread = None
+		
+	def _wdCycle (self):
+		while (not self._watchdog_stop):
+			time.sleep(self._watchdog_time)
+			if (not self._watchdog_value) and (self._rotation != 0 or self._speed != 0):
+				print "WATCHDOG ENDED WITH NO ACTIONS. Stopping the robot for safety."
+				self.stop()
+			self._watchdog_value = False
+		
 	def stop (self):
+	
+		self._watchdog_value = True
 		self._MOTOR_DX.move(0)
 		self._MOTOR_SX.move(0)
 		self._speed = 0
@@ -201,6 +230,8 @@ class MovementController:
 				speed: velocita' di movimento (>0 -> avanti | <0 -> indietro)
 				rotation: velocita' di rotazione (>0 -> orario | <0 -> antiorario)
 		"""
+		
+		self._watchdog_value = True
 		
 		rotation += (self._correction*speed)/100
 		
