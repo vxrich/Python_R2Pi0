@@ -13,7 +13,7 @@ def initialize ():
 	GPIO.setup(pinout.BUZZER, GPIO.OUT)
 	
 	global _player_thread
-	
+
 	_player_thread = threading.Thread(target=playerCycle)
 	_player_thread.start()
 	
@@ -24,6 +24,7 @@ def play (songPath):
 
 	sng = conv.getter(songPath)
 	_songQ.put(sng)
+	print "Added song %s" % songPath
 	
 def stop ():
 
@@ -37,16 +38,51 @@ def stop ():
 	
 #Riproduzione di un singolo suono con i parametri relativi alla nota
 def _buzz(frequenza, durata, durataCompl):
-	buzzer =  GPIO.PWM(pinout.BUZZER, frequenza)
-	buzzer.start(50)
-	time.sleep(durata)
-	buzzer.stop()
+
+	global _buzzer
+	
+	freq = (int(frequenza))
+	
+	if freq==0:
+		freq = 1
+	
+	_fake_pwm(50, frequenza, durata)
 	time.sleep(durataCompl)
+	#print "BUZZ %d %f" % (freq, durata)
+
+def _fake_pwm(dc, freq, duration):
+
+	
+
+	period = 1.0/freq
+	period_H = period * dc/100.0
+	period_L = period - period_H
+	
+	if period > duration:
+		time.sleep(duration)
+		return
+	
+	tm = 0
+	
+	print "Fake pwm dc: %f, f: %f, durata: %f, period: %f" % (dc, freq, duration, period)
+	
+	while tm < duration:
+		GPIO.output(pinout.BUZZER, GPIO.HIGH)
+		time.sleep(period_H)
+		GPIO.output(pinout.BUZZER, GPIO.LOW)
+		time.sleep(period_L)
+		tm += period
+		
 	
 #Riproduce una singola canzone
 def _play (song):
+
+	#print "Playing a song"
+
 	for i in range(len(song)):
 		_buzz((song[i])[0],(song[i])[1],0.02)
+		#print "Playing a note %d" % i
+		
 	
 def playerCycle ():
 	while not _stop:
@@ -70,9 +106,14 @@ if __name__ == "__main__":
 	
 	print  "Starting song"
 	
-	play("RTTL/Eureka.txt")
+	sng = conv.getter("RTTL/Sad.txt")
+
 	
-	time.sleep(3)
+	for i in range(20):
+		print "PLAYING %d" % i
+		play("RTTL/Sad.txt")
+	
+	raw_input("Press Enter...")
 	
 	stop()
 	

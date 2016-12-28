@@ -4,6 +4,7 @@ import blue
 import bluetooth
 import threading
 import select
+import time
 
 
 
@@ -90,11 +91,15 @@ class Subserver:
 					read = self._connection.recv(1)
 					# print "Read %s" % read
 					data+=read
+					print "Read %s" % read
 				self._executeCommand(data[0:len(data)-1])
 				
-			except bluetooth.BluetoothError:
-				pass
+			except bluetooth.BluetoothError as e:
+				msg = str(e)
 				
+				if "unavailable" in msg:
+					self._stop = True
+					
 	def send (self, msg):
 		try:
 				#self._connection.send(msg)
