@@ -10,17 +10,34 @@ import time
 
 TIMEOUT = 0.5
 
+EVENT_CLIENT_CONNECTED = 0
+EVENT_CLIENT_DISCONNECTED = 1
+
 class Server:
-	_subservers = []
-	_commands = {}
-	_cycle_thread = None
-	_stop = False
 	
 	def __init__ (self, commands):
+	
+		self._listeners = []
+		self._subservers = []
+		self._stop = False
 		self._commands = commands
 		t = threading.Thread(target=self._cycle)
 		self._cycle_thread = t
 		
+	def addListener (self, lst):
+		self._listeners.append(lst)
+		
+	def removeListener (self, lst):
+		self._listeners.remove(lst)
+		
+	def _fireEvent (self, evt, param):
+		for lst in self._listeners:
+			print "Main fired, " + str(self._listeners)
+			lst(evt, param)	
+	
+	def _receiveSubEvent (self, evt, subs):
+		self._fireEvent(evt,subs)
+	
 	def start(self):
 		self._cycle_thread.start()
 		
@@ -30,8 +47,11 @@ class Server:
 			
 			if conn != None:
 				subs = Subserver(conn, self._commands)
+				subs.addListener(self._receiveSubEvent)
 				subs.start()
+				
 				self._subservers.append(subs)
+				
 			
 	def stop (self):
 		self._stop = True
@@ -42,13 +62,14 @@ class Server:
 		
 
 class Subserver:
-	_stop = False
-	_thread = None
-	_addr = None
-	_connection = None
-	_commands = {}
+	
 	
 	def  __init__ (self, connection, commands, blocking=False):
+	
+		self._stop = False
+		self._thread = None
+		self._addr = None
+		self._connection = None
 	
 		connection[0].setblocking(0)
 		connection[0].settimeout(0.5)
@@ -56,7 +77,20 @@ class Subserver:
 		self._connection, self._addr = connection
 		self._commands = commands		
 		
+		self._listeners = []
+		
 		print "Subserver created"
+		
+	def addListener (self, lst):
+		self._listeners.append(lst)
+		
+	def removeListener (self, lst):
+		self._listeners.remove(lst)
+		
+	def _fireEvent (self, evt, param):
+		for lst in self._listeners:
+			print "Sub fired, " + str(self._listeners)
+			lst(evt, param)
 		
 	def start(self, blocking=False):
 	
@@ -66,6 +100,8 @@ class Subserver:
 			t.start()
 		else:
 			self._cycle()
+			
+		self._fireEvent(EVENT_CLIENT_CONNECTED, self)
 			
 		print "Subserver started"
 		
@@ -112,6 +148,7 @@ class Subserver:
 		self._stop = True
 		self._thread.join()
 		self._connection.close()
+		self._fireEvent(EVENT_CLIENT_DISCONNECTED, self)
 		
 
 if __name__=="__main__":

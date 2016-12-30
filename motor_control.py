@@ -42,17 +42,14 @@ class Motor:
 	_FORWARD = 1
 	_BACKWARD = 2
 	
-	_forward_pin = None
-	_backward_pin = None
-	_pwm_forward = None
-	_pwm_backward = None
 	
 	def __init__ (self, forward_pin, backward_pin):
 		self._forward_pin = forward_pin
 		self._backward_pin = backward_pin
 		self._state = self._STOPPED
 		self._speed = 0
-		
+		self._pwm_forward = None
+		self._pwm_backward = None
 		
 	def initialize (self, pwm_freq=DEFAULT_FREQ):
 	
@@ -171,27 +168,27 @@ EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS = 0
 		
 class MovementController:
 	
-	_MOTOR_DX = None
-	_MOTOR_SX = None
-	_speed = 0
-	_rotation = 0
 	
-	#correzione in % sulla velocità (per farlo andare dritto)
-	_correction = 0
-	
-	#Dati del watchdog
-	_watchdog_thread = None
-	_watchdog_time = 0.2
-	_watchdog_value = False
-	_watchdog_stop = False
-	
-	_listeners = []
 	
 	
 	def __init__ (self, correction=0):
 		self._MOTOR_DX = Motor(DX_FW, DX_BW)
 		self._MOTOR_SX = Motor(SX_FW, SX_BW)
 		self._correction = correction
+		
+		self._speed = 0
+		self._rotation = 0
+		
+		#correzione in % sulla velocità (per farlo andare dritto)
+		self._correction = 0
+		
+		#Dati del watchdog
+		self._watchdog_thread = None
+		self._watchdog_time = 0.2
+		self._watchdog_value = False
+		self._watchdog_stop = False
+		
+		self._listeners = []
 	
 	def _fireEvent (self, evt, param):
 		for lst in self._listeners:

@@ -64,7 +64,7 @@ def _fake_pwm(dc, freq, duration):
 	
 	tm = 0
 	
-	print "Fake pwm dc: %f, f: %f, durata: %f, period: %f" % (dc, freq, duration, period)
+	# print "Fake pwm dc: %f, f: %f, durata: %f, period: %f" % (dc, freq, duration, period)
 	
 	while tm < duration:
 		GPIO.output(pinout.BUZZER, GPIO.HIGH)

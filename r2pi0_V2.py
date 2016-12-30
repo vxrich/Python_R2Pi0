@@ -4,6 +4,9 @@ import motor_control
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
 
+def srv_lst (evt, param):
+	if evt == server.EVENT_CLIENT_CONNECTED:
+		player.play("RTTL/Eureka.txt")
 
 def lst (evt, param):
 	if evt == motor_control.EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS:
@@ -14,7 +17,18 @@ def end ():
 	mainsrv.stop()
 	GPIO.cleanup()
 	ctrl.stopWatchdog()
-	
+
+i = 0
+
+def sound (cmd, srv):
+
+	global i
+
+	songs = ["imperial2", "Sad", "Eureka", "Processing"]
+
+	player.play("RTTL/%s.txt" % songs[i])
+
+	i = (i+1)%4
 
 def s (cmd, srv):
 
@@ -32,17 +46,17 @@ def r (cmd, srv):
 	except ValueError:
 		srv.send("ko")
 	print "Rotation speed to %s" % cmd[1]
-	
+
 def exit (cmd, srv):
 	srv.send("ok")
-	
+
 	t = threading.Thread(target=end)
 	t.start()
-	
+
 	print "Exited"
-	
-	
-		
+
+
+
 GPIO.setmode(GPIO.BCM)
 
 player.initialize()
@@ -59,10 +73,12 @@ ctrl.addEventListener(lst)
 
 
 
-cmd = {"s": s, "r": r, "exit": exit}
+
+cmd = {"s": s, "r": r, "sound": sound, "exit": exit}
 
 mainsrv = server.Server(cmd)
 mainsrv.start()
+mainsrv.addListener(srv_lst)
 
 raw_input("Press Enter to exit...")
 
