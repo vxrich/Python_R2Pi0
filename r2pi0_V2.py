@@ -1,8 +1,10 @@
 import server
 import time
 import motor_control
+import motion_adapters
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
+import threading
 
 def srv_lst (evt, param):
 	if evt == server.EVENT_CLIENT_CONNECTED:
@@ -50,6 +52,10 @@ def r (cmd, srv):
 def exit (cmd, srv):
 	srv.send("ok")
 
+	player.play("RTTL/Beeping2.txt")
+
+	time.sleep(2)
+
 	t = threading.Thread(target=end)
 	t.start()
 
@@ -64,7 +70,8 @@ player.play("RTTL/Beeping1.txt")
 
 
 
-ctrl = motor_control.MovementController()
+ctrl = motion_adapters.DistanceAdapter(motor_control.MovementController(), 0.2)
+ctrl.setDistance(0.1)
 ctrl.initialize()
 ctrl.startWatchdog()
 ctrl.addEventListener(lst)
