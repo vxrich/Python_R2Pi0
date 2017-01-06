@@ -1,7 +1,8 @@
 import server
 import time
-import motor_control
-import motion_adapters
+import motion.motor_control as motor_control
+import motion.motion_adapters as motion_adapters
+import motion.motion_events as me
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
 import threading
@@ -11,7 +12,9 @@ def srv_lst (evt, param):
 		player.play("RTTL/Eureka.txt")
 
 def lst (evt, param):
-	if evt == motor_control.EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS:
+	if evt == me.EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS:
+		player.play("RTTL/Sad.txt")
+	elif evt == me.EVENT_OBSTACLE_DETECTED:
 		player.play("RTTL/Sad.txt")
 
 def end ():
@@ -61,32 +64,36 @@ def exit (cmd, srv):
 
 	print "Exited"
 
+try:
 
+	GPIO.setmode(GPIO.BCM)
 
-GPIO.setmode(GPIO.BCM)
-
-player.initialize()
-player.play("RTTL/Beeping1.txt")
-
-
-
-ctrl = motion_adapters.DistanceAdapter(motor_control.MovementController(), 0.2)
-ctrl.setDistance(0.1)
-ctrl.initialize()
-ctrl.startWatchdog()
-ctrl.addEventListener(lst)
+	player.initialize()
+	player.play("RTTL/Beeping1.txt")
 
 
 
+	ctrl = motion_adapters.DistanceAdapter(motor_control.MovementController(), 0.2)
+
+	ctrl.initialize()
+	ctrl.startWatchdog()
+	ctrl.addEventListener(lst)
 
 
 
-cmd = {"s": s, "r": r, "sound": sound, "exit": exit}
+	cmd = {"s": s, "r": r, "sound": sound, "exit": exit}
 
-mainsrv = server.Server(cmd)
-mainsrv.start()
-mainsrv.addListener(srv_lst)
+	mainsrv = server.Server(cmd)
+	mainsrv.start()
+	mainsrv.addListener(srv_lst)
 
-raw_input("Press Enter to exit...")
+	raw_input("Press Enter to set obstacle...")
+	ctrl.setDistance(0.1)
+	raw_input("Press Enter to remove obstacle...")
+	ctrl.setDistance(6)
+	raw_input("Press Enter to set obstacle back...")
+	ctrl.setDistance(0.1)
+	raw_input("Press Enter to exit...")
 
-end()
+finally:
+	end()

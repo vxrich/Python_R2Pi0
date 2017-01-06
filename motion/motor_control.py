@@ -53,13 +53,7 @@ class Motor:
 		self._pwm_backward = None
 
 	def initialize (self, pwm_freq=DEFAULT_FREQ):
-		"""
-			Inizializza il motore
 
-			Argomenti:
-			pwm_freq -- frequenza a cui devono funzionare i pwm. Non può essere
-						cambiata in seguito
-		"""
 		print "%d %d" % (self._forward_pin, self._backward_pin)
 
 		GPIO.setup(self._forward_pin, GPIO.OUT)
@@ -70,8 +64,33 @@ class Motor:
 		self._pwm_forward.start(0)
 		self.move(0)
 
+	def _setHighImpedance ():
+
+		GPIO.setup(self._forward_pin, GPIO.IN)
+		GPIO.setup(self._backward_pin, GPIO.IN)
+
+	def _setLowImpedance ():
+
+		GPIO.setup(self._forward_pin, GPIO.OUT)
+		GPIO.setup(self._backward_pin, GPIO.OUT)
+
+	def _stopPwm (self, pwm):
+		pwm.stop()
+		time.sleep(0.01)
+
+	def _setPwm (self, pwm, duty, state):
+		if self._state!=state:
+			#self.stop()
+			#time.sleep(0.5)
+			self.stop(MODE_FL)
+			pwm.stop()
+			pwm.start(duty)
+		else:
+			pwm.ChangeDutyCycle(duty)
+
+
+
 	def forward (self, duty=DEFAULT_DUTY):
-		"""Fa andare avanti con il duty cycle specificato"""
 #		print "Forward %d" % duty
 		self._pwm_forward.ChangeDutyCycle(100)
 
@@ -80,7 +99,6 @@ class Motor:
 		self._state = self._FORWARD
 
 	def backward (self, duty=DEFAULT_DUTY):
-		"""Fa andare indietro con il duty cycle specificato"""
 #		print "Backward %d" % duty
 		self._pwm_backward.ChangeDutyCycle(100)
 
@@ -89,7 +107,6 @@ class Motor:
 		self._state = self._BACKWARD
 
 	def move (self, speed):
-		"""Imposta la velocità di movimento del motorino [0:100]"""
 
 		print "Move %d" % speed
 
@@ -101,18 +118,27 @@ class Motor:
 			speed = limit(-speed, 0, 100)
 			self.backward(speed)
 		else:
+			#se stoppo in modalità SC, quando poi riparto ho dei problemi
+			#probabilmente dovuti al fatto che il pwm è simulato con DMA
+			#e perciò ottengo delle accelerazioni indesiderate dovute
+			#al fatto che i buffer dei 2 pwm erano a 1 e non si possono flushare.
+			#Il problema permane se stoppo i pwm, sembra che comunque continui a
+			#mandare fuori bit fino alla fine del buffer
+			#In modalità FL, invece, essendo entrambi i PWM impostati a 0,
+			#non ho problemi
 			self.stop(MODE_SC)
 
 		self._speed = speed
 
 	def move_delta (self, speed_delta):
-		"""Muove aggiunge un delta alla velocità attuale (utile per funzione follow)"""
 		new_speed = self.getSpeed() + speed_delta
 		self.move(new_speed)
 
 	def stop (self, mode=MODE_SC):
-		"""Blocca il motore"""
+
 #		print "Stopped"
+
+
 
 		if mode==MODE_SC:
 			self._pwm_forward.ChangeDutyCycle(100)
@@ -161,8 +187,6 @@ class MovementController:
 		self._listeners = []
 
 	def _fireEvent (self, evt, param):
-		"""Scatena un evento"""
-
 		for lst in self._listeners:
 			lst(evt, param)
 
@@ -190,7 +214,6 @@ class MovementController:
 			self._watchdog_thread = None
 
 	def _wdCycle (self):
-		"""Ciclo del watchdog, usato all'interno di un thread"""
 		while (not self._watchdog_stop):
 			time.sleep(self._watchdog_time)
 			if (not self._watchdog_value) and (self._rotation != 0 or self._speed != 0):
@@ -200,7 +223,7 @@ class MovementController:
 			self._watchdog_value = False
 
 	def stop (self):
-		"""Blocca ogni motore"""
+
 		self._watchdog_value = True
 		self._MOTOR_DX.move(0)
 		self._MOTOR_SX.move(0)
@@ -214,9 +237,9 @@ class MovementController:
 			Usa come velocita' base speed e somma/sottrae rotation da
 			una parte e dall'altra in base alla direzione di rotazione
 
-			Argomenti:
-			speed -- velocita' di movimento (>0 -> avanti | <0 -> indietro)
-			rotation -- velocita' di rotazione (>0 -> orario | <0 -> antiorario)
+			Input:
+				speed: velocita' di movimento (>0 -> avanti | <0 -> indietro)
+				rotation: velocita' di rotazione (>0 -> orario | <0 -> antiorario)
 		"""
 
 		self._watchdog_value = True
@@ -255,15 +278,15 @@ class MovementController:
 		self._rotation = rotation
 
 	def rotate (self, rotation):
-		"""Applica una rotazione"""
+
 		self.applyMovement (self._speed, rotation)
 
 	def move (self, speed):
-		"""Applica una velocità rettilinea"""
+
 		self.applyMovement (speed, self._rotation)
 
 
-#TEST
+
 if __name__ == "__main__":
 	#TEST
 	import blue
