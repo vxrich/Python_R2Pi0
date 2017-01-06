@@ -29,8 +29,7 @@ class Sensor:
 		self._pulse_end = None
 		self._pulse_duration = None
 
-	#TODO: manca self
-	def initialize():
+	def initialize(self):
 		GPIO.setup(self._pin_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
 		GPIO.setup(self._pin_out, GPIO.OUT)
 		GPIO.output(self._pin_out, False)
@@ -51,14 +50,11 @@ class Sensor:
 		self._distance = self._pulse_duration*SOUND_CONST
 		self._distance = round(self._distance,2)
 
-	#TODO: il nome getter è troppo generico, sarebbe meglio una cosa tipo getDistance
-	#TODO: manca self
-	def _getter():
+	def _getDistance(self):
 		print "Distance:",self._distance,"m"
 		return self._distance
 
-	#TODO: manca self
-	def startCheck():
+	def startCheck(self):
 		self._xchangeSignal()
 
 #        while 1:
@@ -68,8 +64,6 @@ class Sensor:
 
 #L'ECHO sarebbe il pin dove il sensore ritorna il valore mentre
 #il TRIG sarebbe il pin dove riceve il segnale dalla raspberry
-
-#TODO: Ok, ma nel file pinout non ci sono, come hai fatto a testarla?
 
 SENSOR_ECHO = pinout.SENSOR_ECHO
 SENSOR_TRIG = pinout.SENSOR_TRIG
@@ -81,11 +75,11 @@ NOTOBSTACLE = 0
 
 class SensorController:
 
-	#TODO: manca self
-	def __init__():
+	def __init__(self):
 		self._SENSOR = Sensor(SENSOR_TRIG, SENSOR_ECHO)
 
 		self._sensorctrl_thread = None
+		self._sensorctrl_stop = None
 
 		self._listeners = []
 
@@ -107,21 +101,22 @@ class SensorController:
 			self._sensorctrl_thread = threading.Thread(target=self._sensorCtrl())
 			self._sensorctrl_thread.start()
 
-	def _sensorCtrl(self):
-		#Bisogna aggiungere qualche riga per fare in modo che
-		#non continui a dire che e' troppo vicino ma lasci il tempo
-		#di muoversi
+	def stopSensorCtrl(self):
+		if (self._sensorctrl_thread != None):
+			self._sensorctrl_stop = True
+			self._sensorctrl_thread.join()
+			self._sensorctrl_thread = None
 
+	def _sensorCtrl(self):
 		#TODO: Più che altro bisogna aggiungere la possibilità di fermare il thread
 
-		while 1:
+		while (not self._sensorctrl_stop):
 			self._SENSOR.startCheck();
-			if self._SENSOR.getter() <= 0.50:
-				print "POSSIBLE COLLISION"
-				self._fireEvent(OBSTACLE, None) #TODO: Qua NON va bene, bisogna inviare la distanza IN METRI aI listener
-												#questo serve più che altro per la funzione follow in cui avere la distanza in
-												#metri potrebbe essere utile, inoltre qua abbiamo fissato di default la distanza
-												#dell'ostacolo a 0.5 metri, brutta idea. Basta mandare la distanza in metri,
-												#si occupa di definire la distanza dell'ostacolo direttamente la classe che ho
-												#scritto apposta
+			self._fireEvent(self._SENSOR)
+		 	#TODO: Qua NON va bene, bisogna inviare la distanza IN METRI aI listener
+			#questo serve più che altro per la funzione follow in cui avere la distanza in
+			#metri potrebbe essere utile, inoltre qua abbiamo fissato di default la distanza
+			#dell'ostacolo a 0.5 metri, brutta idea. Basta mandare la distanza in metri,
+			#si occupa di definire la distanza dell'ostacolo direttamente la classe che ho
+			#scritto apposta
 			time.sleep(WAIT_TIME)
