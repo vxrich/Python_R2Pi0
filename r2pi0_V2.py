@@ -3,9 +3,14 @@ import time
 import motion.motor_control as motor_control
 import motion.motion_adapters as motion_adapters
 import motion.motion_events as me
+import motion.motion_factory as mf
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
 import threading
+
+OBSTACLE_THRESHOLD = 0.2
+
+ctrl = None
 
 def srv_lst (evt, param):
 	if evt == server.EVENT_CLIENT_CONNECTED:
@@ -52,6 +57,20 @@ def r (cmd, srv):
 		srv.send("ko")
 	print "Rotation speed to %s" % cmd[1]
 
+#TODO: testare se funziona
+def set_mode (cmd, srv):
+	try:
+		global ctrl
+		mode = cmd[1]
+		if mode == "free":
+			ctrl = mf.getBaseController()
+		elif mode == "avoid_obstacles":
+			ctrl = mf.getObstacleAvoidController(OBSTACLE_THRESHOLD)
+		srv.send("ok")
+	except ValueError:
+		srv.send("ko")
+	print "Mode setr to %s" % cmd[1]
+
 def exit (cmd, srv):
 	srv.send("ok")
 
@@ -73,7 +92,7 @@ try:
 
 
 
-	ctrl = motion_adapters.DistanceAdapter(motor_control.MovementController(), 0.2)
+	ctrl = mf.getObstacleAvoidController(0.2)
 
 	ctrl.initialize()
 	ctrl.startWatchdog()
@@ -81,7 +100,7 @@ try:
 
 
 
-	cmd = {"s": s, "r": r, "sound": sound, "exit": exit}
+	cmd = {"s": s, "r": r, "sound": sound, "set_mode": set_mode, "exit": exit}
 
 	mainsrv = server.Server(cmd)
 	mainsrv.start()

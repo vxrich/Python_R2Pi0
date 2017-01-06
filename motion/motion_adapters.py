@@ -1,4 +1,3 @@
-#todo: Evento obstacle detected
 import motion_events as me
 
 INITIAL_DISTANCE = 50.0
