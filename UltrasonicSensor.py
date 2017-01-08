@@ -125,6 +125,8 @@ class SensorController:
 #TEST
 if __name__ == "__main__":
 
+	GPIO.setmode(GPIO.BCM)
+
 	sensor = Sensor(24, 23)
 	sensor.initialize()
 	sensor.startCheck()
