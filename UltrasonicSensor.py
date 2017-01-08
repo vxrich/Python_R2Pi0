@@ -56,6 +56,7 @@ class Sensor:
 
 	def startCheck(self):
 		self._xchangeSignal()
+		self._getDistance()
 
 #        while 1:
 #            self._xchangeSignal()
@@ -120,3 +121,10 @@ class SensorController:
 			#si occupa di definire la distanza dell'ostacolo direttamente la classe che ho
 			#scritto apposta
 			time.sleep(WAIT_TIME)
+
+#TEST
+if __name__ == "__main__":
+
+	sensor = Sensor(24, 23)
+	sensor.initialize()
+	sensor.startCheck()
