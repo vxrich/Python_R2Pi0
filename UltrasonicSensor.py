@@ -14,41 +14,48 @@ import pinout
 
 TIME_OUT = 50
 SIGNAL_DELAY = 0.00001
-SOUND_CONST = 1715.0
+SOUND_CONST = 171.50
 WAIT_TIME = 0.05
 
 #TODO: La classe nel complesso sembra ok, ma chiaramente non è stata testata perchè
 #      così certamente non parte, ci sono errori di sintassi
+
+#IMPORTANTE: il trigger e' input per il sensore ma out per la raspberry
+# e l'echo e' output per il sensore ma input per la raspberry
+# i nomi vengono considerati guardando dal lato raspberry
 class Sensor:
 
-	def __init__(self, pin_in, pin_out):
-		self._pin_in = pin_in
-		self._pin_out = pin_out
+	def __init__(self, pin_out, pin_in):
+		self._trig = pin_out
+		self._echo = pin_in
 		self._distance = None
 		self._pulse_start = None
 		self._pulse_end = None
 		self._pulse_duration = None
 
 	def initialize(self):
-		GPIO.setup(self._pin_in, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
-		GPIO.setup(self._pin_out, GPIO.OUT)
-		GPIO.output(self._pin_out, False)
+		GPIO.setup(self._echo, GPIO.IN, pull_up_down=GPIO.PUD_DOWN)
+		GPIO.setup(self._trig, GPIO.OUT)
+		GPIO.output(self._trig, False)
 
 	def _xchangeSignal(self):
-		GPIO.output(self._pin_out, True)
+		GPIO.output(self._trig, True)
 		time.sleep(SIGNAL_DELAY)
-		GPIO.output(self._pin_out, False)
+		GPIO.output(self._trig, False)
 
-		while GPIO.input(ECHO)==0:
-			_pulse_start = time.time()
+		while GPIO.input(self._echo)==0:
+			self._pulse_start = time.time()
+						
+		while GPIO.input(self._echo)==1:
+			self._pulse_end = time.time()
 
-		while GPIO.input(ECHO)==1:
-			_pulse_end = time.time()
-
-		self._pulse_duration = self._pulse_end - self._pulse_start
-
-		self._distance = self._pulse_duration*SOUND_CONST
-		self._distance = round(self._distance,2)
+		if self._pulse_end != None and self._pulse_start != None:
+			self._pulse_duration = self._pulse_end - self._pulse_start
+			
+			self._distance = self._pulse_duration*SOUND_CONST
+			self._distance = round(self._distance,2)
+			
+			self._getDistance()
 
 	def _getDistance(self):
 		print "Distance:",self._distance,"m"
@@ -56,7 +63,7 @@ class Sensor:
 
 	def startCheck(self):
 		self._xchangeSignal()
-		self._getDistance()
+		
 
 #        while 1:
 #            self._xchangeSignal()
@@ -125,8 +132,11 @@ class SensorController:
 #TEST
 if __name__ == "__main__":
 
+	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BCM)
 
 	sensor = Sensor(24, 23)
 	sensor.initialize()
 	sensor.startCheck()
+	
+	GPIO.cleanup()
