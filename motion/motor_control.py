@@ -157,7 +157,7 @@ class Motor:
 		return self._state
 
 	def getSpeed (self):
-		return delf._speed
+		return self._speed
 
 SX_FW = pinout.MOTOR_SX_FW
 SX_BW = pinout.MOTOR_SX_BW
@@ -285,6 +285,11 @@ class MovementController:
 
 		self.applyMovement (speed, self._rotation)
 
+	def getSpeed (self):
+		return self._speed
+
+	def getRotation (self):
+		return self._rotation
 
 
 if __name__ == "__main__":

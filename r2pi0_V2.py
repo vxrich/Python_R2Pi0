@@ -7,10 +7,14 @@ import motion.motion_factory as mf
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
 import threading
+import mood
 
 OBSTACLE_THRESHOLD = 0.2
 
 ctrl = None
+distCtrl = None
+moodTimeCtrl = None
+mainsrv = None
 
 def srv_lst (evt, param):
 	if evt == server.EVENT_CLIENT_CONNECTED:
@@ -27,6 +31,7 @@ def end ():
 	mainsrv.stop()
 	GPIO.cleanup()
 	ctrl.stopWatchdog()
+	moodTimeCtrl.stop()
 
 i = 0
 
@@ -83,6 +88,11 @@ def exit (cmd, srv):
 
 	print "Exited"
 
+def moodCallback (evt, param):
+	print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
+
+	
+
 try:
 
 	GPIO.setmode(GPIO.BCM)
@@ -90,9 +100,14 @@ try:
 	player.initialize()
 	player.play("RTTL/Beeping1.txt")
 
+	moodCtrl = mood.Mood()
+	moodCtrl.addListener(moodCallback)
+	moodTimeCtrl = mood.TimeMoodManager(moodCtrl, 1);
+	moodTimeCtrl.start()
 
+	distCtrl = mf.getObstacleAvoidController(0.2)
 
-	ctrl = mf.getObstacleAvoidController(0.2)
+	ctrl = motion_adapters.MoodedAdapter(distCtrl, moodCtrl, moodTimeCtrl, fatigue_factor=10)
 
 	ctrl.initialize()
 	ctrl.startWatchdog()
@@ -107,12 +122,13 @@ try:
 	mainsrv.addListener(srv_lst)
 
 	raw_input("Press Enter to set obstacle...")
-	ctrl.setDistance(0.1)
+	distCtrl.setDistance(0.1)
 	raw_input("Press Enter to remove obstacle...")
-	ctrl.setDistance(6)
+	distCtrl.setDistance(6)
 	raw_input("Press Enter to set obstacle back...")
-	ctrl.setDistance(0.1)
+	distCtrl.setDistance(0.1)
 	raw_input("Press Enter to exit...")
-
+except Exception as e:
+	print e
 finally:
 	end()
