@@ -4,6 +4,7 @@ import motion.motor_control as motor_control
 import motion.motion_adapters as motion_adapters
 import motion.motion_events as me
 import motion.motion_factory as mf
+import motion.reacher as reacher
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
 import threading
@@ -15,6 +16,7 @@ ctrl = None
 distCtrl = None
 moodTimeCtrl = None
 mainsrv = None
+rch = None
 
 def srv_lst (evt, param):
 	if evt == server.EVENT_CLIENT_CONNECTED:
@@ -25,6 +27,7 @@ def lst (evt, param):
 		player.play("RTTL/Sad.txt")
 	elif evt == me.EVENT_OBSTACLE_DETECTED:
 		player.play("RTTL/Sad.txt")
+		rch.obstacle()
 
 def end ():
 	player.stop()
@@ -32,6 +35,7 @@ def end ():
 	GPIO.cleanup()
 	ctrl.stopWatchdog()
 	moodTimeCtrl.stop()
+	rch.stop()
 
 i = 0
 
@@ -76,6 +80,12 @@ def set_mode (cmd, srv):
 		srv.send("ko")
 	print "Mode setr to %s" % cmd[1]
 
+def shutup (cmd, srv):
+	player.toggleSilence()
+
+def reach (cmd, srv):
+	rch.reach()
+
 def exit (cmd, srv):
 	srv.send("ok")
 
@@ -89,9 +99,9 @@ def exit (cmd, srv):
 	print "Exited"
 
 def moodCallback (evt, param):
-	print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
+	#print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
+	pass
 
-	
 
 try:
 
@@ -113,9 +123,9 @@ try:
 	ctrl.startWatchdog()
 	ctrl.addEventListener(lst)
 
+	rch = reacher.Reacher(ctrl)
 
-
-	cmd = {"s": s, "r": r, "sound": sound, "set_mode": set_mode, "exit": exit}
+	cmd = {"s": s, "r": r, "sound": sound, "set_mode": set_mode, "exit": exit, "shutup": shutup, "reach": reach}
 
 	mainsrv = server.Server(cmd)
 	mainsrv.start()
