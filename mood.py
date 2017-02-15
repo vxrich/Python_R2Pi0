@@ -57,7 +57,7 @@ class Mood:
 			lst(evt, param)
 
 FATIGUE_FACTOR=5
-BOREDOM_FACTOR=1
+BOREDOM_FACTOR=5
 
 class TimeMoodManager:
 
@@ -66,8 +66,7 @@ class TimeMoodManager:
 		self._checkDelay = checkDelay
 		self._stop = False
 		self._checkThread = None
-		self._disabled = False
-		self._disableEnd = 0
+		self._disabled = [(False,0),(False,0),(False,0),(False,0),(False,0)] #lista di coppie disabled, disabled end
 
 	def start (self):
 		self._checkThread = threading.Thread(target=self._checkCycle)
@@ -78,20 +77,25 @@ class TimeMoodManager:
 			self._stop = True
 			self._checkThread.join()
 
-	def disable (self, period=1):
-		self._disabled = True
-		self._disableEnd = time.time() + period
-		#print "Now: %d, Disable end: %d" % (time.time(), self._disableEnd)
+	def disable (self, mood, period=1):
+		self._disabled[mood] = (True, time.time() + period)
+
+	def _reenableCheck (self):
+		for i in range(len(self._disabled)):
+			(dis, end) = self._disabled[i]
+
+			if (dis and time.time() > end):
+				self._disabled[i] = (False, 0)
 
 	def _checkCycle (self):
 		while not self._stop:
 
-			if self._disabled and time.time() > self._disableEnd:
-				#print "Disabled: %d" % self._disabled
-				self._disabled = False
+			self._reenableCheck()
 
-			if not self._disabled:
+			if not self._disabled[FATIGUE_MOOD][0]:
 				self._mood.applyDelta(FATIGUE_MOOD, -FATIGUE_FACTOR*self._checkDelay)
+
+			if not self._disabled[BOREDOM_MOOD][0]:
 				self._mood.applyDelta(BOREDOM_MOOD, BOREDOM_FACTOR*self._checkDelay)
 
 			time.sleep(self._checkDelay)

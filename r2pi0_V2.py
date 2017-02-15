@@ -99,7 +99,7 @@ def exit (cmd, srv):
 	print "Exited"
 
 def moodCallback (evt, param):
-	#print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
+	print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
 	pass
 
 
@@ -117,7 +117,7 @@ try:
 
 	distCtrl = mf.getObstacleAvoidController(0.2)
 
-	ctrl = motion_adapters.MoodedAdapter(distCtrl, moodCtrl, moodTimeCtrl, fatigue_factor=10)
+	ctrl = motion_adapters.MoodedAdapter(distCtrl, moodCtrl, moodTimeCtrl, fatigue_factor=10, boredom_factor=20)
 
 	ctrl.initialize()
 	ctrl.startWatchdog()

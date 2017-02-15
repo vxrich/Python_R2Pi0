@@ -45,25 +45,23 @@ class Sensor:
 
 		while GPIO.input(self._echo)==0:
 			self._pulse_start = time.time()
-						
+
 		while GPIO.input(self._echo)==1:
 			self._pulse_end = time.time()
 
 		if self._pulse_end != None and self._pulse_start != None:
 			self._pulse_duration = self._pulse_end - self._pulse_start
-			
+
 			self._distance = self._pulse_duration*SOUND_CONST
 			self._distance = round(self._distance,2)
-			
-			self._getDistance()
 
-	def _getDistance(self):
-		print "Distance:",self._distance,"m"
+	def getDistance(self):
+
 		return self._distance
 
 	def startCheck(self):
 		self._xchangeSignal()
-		
+
 
 #        while 1:
 #            self._xchangeSignal()
@@ -80,6 +78,8 @@ MIN_DIST = 0.50
 
 OBSTACLE = 1
 NOTOBSTACLE = 0
+
+EVENT_DISTANCE = 0
 
 class SensorController:
 
@@ -106,8 +106,9 @@ class SensorController:
 
 	def startSensorCtrl(self):
 		if (self._sensorctrl_thread == None):
-			self._sensorctrl_thread = threading.Thread(target=self._sensorCtrl())
+			self._sensorctrl_thread = threading.Thread(target=self._sensorCtrl)
 			self._sensorctrl_thread.start()
+
 
 	def stopSensorCtrl(self):
 		if (self._sensorctrl_thread != None):
@@ -120,13 +121,8 @@ class SensorController:
 
 		while (not self._sensorctrl_stop):
 			self._SENSOR.startCheck();
-			self._fireEvent(self._SENSOR)
-		 	#TODO: Qua NON va bene, bisogna inviare la distanza IN METRI aI listener
-			#questo serve più che altro per la funzione follow in cui avere la distanza in
-			#metri potrebbe essere utile, inoltre qua abbiamo fissato di default la distanza
-			#dell'ostacolo a 0.5 metri, brutta idea. Basta mandare la distanza in metri,
-			#si occupa di definire la distanza dell'ostacolo direttamente la classe che ho
-			#scritto apposta
+			self._fireEvent(EVENT_DISTANCE, self._SENSOR)
+
 			time.sleep(WAIT_TIME)
 
 #TEST
@@ -135,8 +131,22 @@ if __name__ == "__main__":
 	GPIO.setwarnings(False)
 	GPIO.setmode(GPIO.BCM)
 
-	sensor = Sensor(24, 23)
+	sensor = Sensor(21, 20)
 	sensor.initialize()
 	sensor.startCheck()
-	
+
+	sensorCtrl = SensorController()
+
+	def prova (evt, param):
+		print "Distance:",param.getDistance(),"m"
+
+	sensorCtrl.addEventListener(prova)
+
+	sensorCtrl.initialize()
+	sensorCtrl.startSensorCtrl()
+
+	time.sleep(1)
+
+	sensorCtrl.stopSensorCtrl()
+
 	GPIO.cleanup()
