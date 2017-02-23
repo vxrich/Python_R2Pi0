@@ -4,6 +4,7 @@ import mood
 import threading
 
 INITIAL_DISTANCE = 50.0
+DISTANCE_HISTERESIS = 0.3
 
 class DistanceAdapter:
 
@@ -12,6 +13,7 @@ class DistanceAdapter:
 		self._near_threshold = near_threshold
 		self._distance = INITIAL_DISTANCE
 		self._listeners = []
+		print "__init__"
 		self._obstacle_found = False
 
 	def _distanceCheck (self, speed):
@@ -21,16 +23,22 @@ class DistanceAdapter:
 			return True
 
 	def setDistance (self, new_dist):
+
+		old_dist = self._distance;
+
 		self._distance = new_dist
 		if (not self._distanceCheck(self.getSpeed())):
 
 			self.move(0)
 
 		if self._distance < self._near_threshold and self._obstacle_found == False:
-				self._fireEvent(me.EVENT_OBSTACLE_DETECTED, self._distance)
-				self._obstacle_found = True
-		else:
+			#print "FIREEEEEEE!!!! ", old_dist, "   ", new_dist, "   ", self._obstacle_found
+			self._fireEvent(me.EVENT_OBSTACLE_DETECTED, self._distance)
+			self._obstacle_found = True
+		elif self._distance > self._near_threshold + DISTANCE_HISTERESIS:
+			#print self._obstacle_found, "   ", new_dist
 			self._obstacle_found = False
+			#pass
 
 	def _fireEvent (self, evt, param):
 		for lst in self._listeners:
@@ -142,7 +150,7 @@ class MoodedAdapter:
 		if self._bored_movement != None and self._bored_movement.stopped() == False:
 			self._bored_movement.stop()
 
-		print "AAAAAAAAAAAAAAAAAAAAAAAA"
+		#print "AAAAAAAAAAAAAAAAAAAAAAAA"
 
 		self._internalApplyMovement(speed, rotation)
 
@@ -152,7 +160,7 @@ class MoodedAdapter:
 		deltaFatigue = ((abs(self.getSpeed())+abs(self.getRotation()))/200.0)*timeDiff*self._fatigue_factor
 		deltaBoredom = ((abs(self.getSpeed())+abs(self.getRotation()))/200.0)*timeDiff*self._boredom_factor
 
-		print "Diff:%f DeltaBor:%f Factor:%f" % (timeDiff, deltaBoredom, self._boredom_factor)
+		#print "Diff:%f DeltaBor:%f Factor:%f" % (timeDiff, deltaBoredom, self._boredom_factor)
 
 		self._mood_ctrl.applyDelta(mood.FATIGUE_MOOD, deltaFatigue)
 		self._mood_ctrl.applyDelta(mood.BOREDOM_MOOD, -deltaBoredom)

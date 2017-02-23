@@ -11,6 +11,7 @@ import RPi.GPIO as GPIO
 import time
 import threading
 import pinout
+import proxsensor
 
 TIME_OUT = 50
 SIGNAL_DELAY = 0.00001
@@ -43,11 +44,19 @@ class Sensor:
 		time.sleep(SIGNAL_DELAY)
 		GPIO.output(self._trig, False)
 
+		begin = time.time()
+
 		while GPIO.input(self._echo)==0:
 			self._pulse_start = time.time()
+			if (begin - self._pulse_start) > 0.05:
+				time.sleep(0.002)
+
+		begin = time.time()
 
 		while GPIO.input(self._echo)==1:
 			self._pulse_end = time.time()
+			if (begin - self._pulse_end) > 0.05:
+				time.sleep(0.002)
 
 		if self._pulse_end != None and self._pulse_start != None:
 			self._pulse_duration = self._pulse_end - self._pulse_start
@@ -84,7 +93,7 @@ EVENT_DISTANCE = 0
 class SensorController:
 
 	def __init__(self):
-		self._SENSOR = Sensor(SENSOR_TRIG, SENSOR_ECHO)
+
 
 		self._sensorctrl_thread = None
 		self._sensorctrl_stop = None
@@ -102,7 +111,7 @@ class SensorController:
 		self._listeners.remove(lst)
 
 	def initialize(self):
-		self._SENSOR.initialize()
+		proxsensor.initialize(SENSOR_ECHO, SENSOR_TRIG)
 
 	def startSensorCtrl(self):
 		if (self._sensorctrl_thread == None):
@@ -117,36 +126,29 @@ class SensorController:
 			self._sensorctrl_thread = None
 
 	def _sensorCtrl(self):
-		#TODO: Più che altro bisogna aggiungere la possibilità di fermare il thread
 
 		while (not self._sensorctrl_stop):
-			self._SENSOR.startCheck();
-			self._fireEvent(EVENT_DISTANCE, self._SENSOR)
+
+			if proxsensor.readingDone():
+				self._fireEvent(EVENT_DISTANCE, proxsensor.getDistance())
+				proxsensor.startReading()
 
 			time.sleep(WAIT_TIME)
 
 #TEST
 if __name__ == "__main__":
 
-	GPIO.setwarnings(False)
-	GPIO.setmode(GPIO.BCM)
-
-	sensor = Sensor(21, 20)
-	sensor.initialize()
-	sensor.startCheck()
 
 	sensorCtrl = SensorController()
 
 	def prova (evt, param):
-		print "Distance:",param.getDistance(),"m"
+		print "Distance:",param,"m"
 
 	sensorCtrl.addEventListener(prova)
 
 	sensorCtrl.initialize()
 	sensorCtrl.startSensorCtrl()
 
-	time.sleep(1)
+	time.sleep(10)
 
 	sensorCtrl.stopSensorCtrl()
-
-	GPIO.cleanup()

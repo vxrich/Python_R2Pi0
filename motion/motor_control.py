@@ -108,7 +108,7 @@ class Motor:
 
 	def move (self, speed):
 
-		print "Move %d" % speed
+		#print "Move %d" % speed
 
 
 		if speed > 0:
@@ -269,7 +269,7 @@ class MovementController:
 			#Meno spinta a sx
 			sx_speed = speed - rotation_abs
 
-		print "applyMovement SX:%d DX:%d" % (sx_speed, dx_speed)
+		#print "applyMovement SX:%d DX:%d" % (sx_speed, dx_speed)
 
 		self._MOTOR_DX.move(dx_speed)
 		self._MOTOR_SX.move(sx_speed)

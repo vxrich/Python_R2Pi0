@@ -57,7 +57,7 @@ class Mood:
 			lst(evt, param)
 
 FATIGUE_FACTOR=5
-BOREDOM_FACTOR=5
+BOREDOM_FACTOR=0.5
 
 class TimeMoodManager:
 

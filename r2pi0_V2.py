@@ -5,10 +5,12 @@ import motion.motion_adapters as motion_adapters
 import motion.motion_events as me
 import motion.motion_factory as mf
 import motion.reacher as reacher
+import motion.follower as follower
 import RPi.GPIO as GPIO
 import RTTLPlayer as player
 import threading
 import mood
+import UltrasonicSensor
 
 OBSTACLE_THRESHOLD = 0.2
 
@@ -17,6 +19,8 @@ distCtrl = None
 moodTimeCtrl = None
 mainsrv = None
 rch = None
+flw = None
+sensorCtrl = None
 
 def srv_lst (evt, param):
 	if evt == server.EVENT_CLIENT_CONNECTED:
@@ -30,12 +34,14 @@ def lst (evt, param):
 		rch.obstacle()
 
 def end ():
+	sensorCtrl.stopSensorCtrl()
 	player.stop()
 	mainsrv.stop()
 	GPIO.cleanup()
 	ctrl.stopWatchdog()
 	moodTimeCtrl.stop()
 	rch.stop()
+	flw.stop()
 
 i = 0
 
@@ -85,6 +91,10 @@ def shutup (cmd, srv):
 
 def reach (cmd, srv):
 	rch.reach()
+	srv.send("ok");
+
+def follow (cmd, srv):
+	pass
 
 def exit (cmd, srv):
 	srv.send("ok")
@@ -96,12 +106,17 @@ def exit (cmd, srv):
 	t = threading.Thread(target=end)
 	t.start()
 
+	sensorCtrl.stopSensorCtrl()
+
 	print "Exited"
 
 def moodCallback (evt, param):
-	print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
+	#print "Moods: Sadness:%s Rage:%s Happiness:%s Boredom:%s Fatigue:%s" % (param.getMood(mood.SADNESS_MOOD), param.getMood(mood.RAGE_MOOD), param.getMood(mood.HAPPINESS_MOOD), param.getMood(mood.BOREDOM_MOOD), param.getMood(mood.FATIGUE_MOOD))
 	pass
 
+def distance (evt, param):
+	distCtrl.setDistance(param)
+	#print "Distance: ", param
 
 try:
 
@@ -117,6 +132,15 @@ try:
 
 	distCtrl = mf.getObstacleAvoidController(0.2)
 
+	sensorCtrl = UltrasonicSensor.SensorController()
+
+	sensorCtrl.addEventListener(distance)
+
+	sensorCtrl.initialize()
+	sensorCtrl.startSensorCtrl()
+
+
+
 	ctrl = motion_adapters.MoodedAdapter(distCtrl, moodCtrl, moodTimeCtrl, fatigue_factor=10, boredom_factor=20)
 
 	ctrl.initialize()
@@ -124,6 +148,9 @@ try:
 	ctrl.addEventListener(lst)
 
 	rch = reacher.Reacher(ctrl)
+	flw = follower.Follower(ctrl, sensorCtrl, 0.3, 0.05)
+
+	flw.start()
 
 	cmd = {"s": s, "r": r, "sound": sound, "set_mode": set_mode, "exit": exit, "shutup": shutup, "reach": reach}
 
