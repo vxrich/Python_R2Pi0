@@ -11,6 +11,10 @@ import RPi.GPIO as GPIO
 import time
 import threading
 import pinout
+
+#Modulo scritto (da noi) in C, per ottimizzare grazie alla possibilità di usare
+#gli interrupt di wiringPi, che però funzionano solo in C, non hanno un wrapper
+#python
 import proxsensor
 
 TIME_OUT = 50
@@ -18,12 +22,7 @@ SIGNAL_DELAY = 0.00001
 SOUND_CONST = 171.50
 WAIT_TIME = 0.05
 
-#TODO: La classe nel complesso sembra ok, ma chiaramente non è stata testata perchè
-#      così certamente non parte, ci sono errori di sintassi
-
-#IMPORTANTE: il trigger e' input per il sensore ma out per la raspberry
-# e l'echo e' output per il sensore ma input per la raspberry
-# i nomi vengono considerati guardando dal lato raspberry
+#Classe di controllo del sensore precedente alla codifica in C. DEPRECATO
 class Sensor:
 
 	def __init__(self, pin_out, pin_in):
@@ -91,7 +90,10 @@ NOTOBSTACLE = 0
 EVENT_DISTANCE = 0
 
 class SensorController:
-
+	"""
+		Si occupa di leggere la distanza dal sensore ad intervalli di tempo regolari
+		e di notificare tale distanza attraverso un evento
+	"""
 	def __init__(self):
 
 

@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+#
+#	Autori: Tosatto Davide, Riccardo Grespan
+#
+#	Modulo che contiene tutte le associazioni pin->Funzione
+#
+
 import RPi.GPIO as GPIO
 
 MOTOR_SX_FW = 19

@@ -3,6 +3,10 @@
 #	Autori: Tosatto Davide, Riccardo Grespan
 #
 #	Modulo per la gestione dell'umore del robot
+#	NOTA: Benchè questo modulo contenga 5 emozioni, per ora solo 2 sono
+#	realmente usate: noia e fatica
+#
+#	Le altre saranno forse utilizzate in sviluppi futuri
 #
 import time
 import threading
@@ -19,6 +23,9 @@ FATIGUE_MOOD = 4
 EVENT_MOOD_CHANGED = 0
 
 class Mood:
+	"""
+		Classe che si occupa di gestire le 5 emozioni del robot.
+	"""
 
 	def __init__ (self, sadness=0, rage=0, happiness=0, boredom=0, fatigue=0):
 		self._mood = {}
@@ -60,12 +67,18 @@ FATIGUE_FACTOR=5
 BOREDOM_FACTOR=0.5
 
 class TimeMoodManager:
+	"""
+		Classe che si occupa di gestire la variazione delle emozioni con il
+		passare del tempo
+	"""
 
 	def __init__ (self, mood, checkDelay):
 		self._mood = mood
 		self._checkDelay = checkDelay
 		self._stop = False
 		self._checkThread = None
+
+		#Lista che serve per inibire la variazione temporale delle emozioni in modo selettivo
 		self._disabled = [(False,0),(False,0),(False,0),(False,0),(False,0)] #lista di coppie disabled, disabled end
 
 	def start (self):
@@ -81,6 +94,10 @@ class TimeMoodManager:
 		self._disabled[mood] = (True, time.time() + period)
 
 	def _reenableCheck (self):
+		"""
+			Controlla se ci sono emozioni da riabilitare, ossia se si è raggiunto
+			il loro tempo di fine disabilitazione
+		"""
 		for i in range(len(self._disabled)):
 			(dis, end) = self._disabled[i]
 
@@ -88,6 +105,11 @@ class TimeMoodManager:
 				self._disabled[i] = (False, 0)
 
 	def _checkCycle (self):
+
+		"""
+			Ciclo principale che aggiorna le emozioni
+		"""
+
 		while not self._stop:
 
 			self._reenableCheck()

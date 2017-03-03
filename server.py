@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
-
+#
+#	Autori: Tosatto Davide, Riccardo Grespan
+#
+#	Modulo di comunicazione attraverso bluetooth con app Android residente sul telefono
+#
 import blue
 import bluetooth
 import threading
@@ -14,7 +18,10 @@ EVENT_CLIENT_CONNECTED = 0
 EVENT_CLIENT_DISCONNECTED = 1
 
 class Server:
-
+	"""
+		Classe server. Si occupa di ricevere le richieste di connessione dall'esterno
+		e di avviare un'istanza di Subserver in un thread separato per ogni richiesta.
+	"""
 	def __init__ (self, commands):
 
 		self._listeners = []
@@ -62,7 +69,11 @@ class Server:
 
 
 class Subserver:
-
+	"""
+		Risponde ai comandi impartiti da un singolo client.
+		Riceve una lista di comandi con rispettivi callback nel costruttore
+		in modo da risultare il più generale possibile
+	"""
 
 	def  __init__ (self, connection, commands, blocking=False):
 
@@ -111,6 +122,9 @@ class Subserver:
 		if len(cmd) > 0:
 			print "Command received %s" % data
 			print "Command received %s" % str(cmd)
+
+			#Controlla se il comando è nella lista dei comandi passati.
+			#Se si, esegue il corrispondente callback
 			if cmd[0] in self._commands:
 				self._commands[cmd[0]](cmd, self)
 		else:
