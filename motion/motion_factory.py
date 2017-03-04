@@ -1,3 +1,9 @@
+# -*- coding: utf-8 -*-
+#
+#	Autori: Tosatto Davide, Riccardo Grespan
+#
+#	Funzioni di utilità per costruire controllori di movimento
+#
 
 import motor_control
 import motion_adapters

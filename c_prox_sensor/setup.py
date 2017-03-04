@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+#
+#	Autori: Tosatto Davide, Riccardo Grespan
+#
+#	Script per compilare ed installare il modulo proxsensor, scritto in C
+#   Comando da eseguire: sudo python setup.py install
+#
+
 from distutils.core import setup, Extension
 
 module1 = Extension('proxsensor',
@@ -8,5 +16,5 @@ module1 = Extension('proxsensor',
 
 setup (name = 'proxsensor',
        version = '1.0',
-       description = 'This is a demo package',
+       description = 'Pacchetto di sontrollo del sensore di prossimità',
        ext_modules = [module1])

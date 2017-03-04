@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+#
+#	Autori: Tosatto Davide, Riccardo Grespan
+#
+#	Modulo di controllo per il raggiungimento di un oggetto
+#
+
 import threading
 import time
 
@@ -31,6 +38,8 @@ class Reacher:
 			self._started = True
 
 	def obstacle (self):
+		# Ostacolo vicino rilevato: raggiungimento effettuato
+		# va richiamata dall'esterno
 		if self._started:
 			self._sem.acquire()
 			self._started = False

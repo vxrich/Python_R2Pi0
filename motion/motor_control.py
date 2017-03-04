@@ -17,7 +17,7 @@ import RTTLPlayer as player
 from motion_events import EVENT_WATCHDOG_TERMINATED_WITH_NO_ACTIONS
 
 #Modalita' di spegnimento motore:
-# MODE_SC: Short Circuit: pone il motore a massa da entrambi i pin in modo da farlo fremare prima
+# MODE_SC: Short Circuit: pone i pin del motore in corto circuito
 # MODE_FL: Floating: lascia il motore floatante: si ferma dopo
 MODE_SC = 0
 MODE_FL = 1
@@ -27,7 +27,8 @@ LOW = 0
 
 DEFAULT_DUTY = 50
 
-#Frequenza pwm bassa in modo da avere l'impulso per partire già a duty basso
+#La frequenza del pwm è mantenuta bassa in modo da avere l'impulso per
+#partire già a duty cycle basso (altrimenti avrei impulsini troppo piccoli)
 DEFAULT_FREQ = 30
 
 def limit (value, min, max):
@@ -38,6 +39,12 @@ def limit (value, min, max):
 	return value
 
 class Motor:
+	"""
+		Classe che rappresenta il singolo motore.
+
+		L'astrazione prevede di poter passare al motore semplicemente una velocità
+		compresa tra -100 e 100
+	"""
 
 	_STOPPED = 0
 	_FORWARD = 1
@@ -91,6 +98,9 @@ class Motor:
 
 
 	def forward (self, duty=DEFAULT_DUTY):
+		#NOTA: Il motore è "spento" quando entrambi i PWM sono a 1
+		#perciò lascio sempre a 1 il PWM forward, così avrò avanzamento quando l'altro va a 0
+
 #		print "Forward %d" % duty
 		self._pwm_forward.ChangeDutyCycle(100)
 
@@ -99,6 +109,8 @@ class Motor:
 		self._state = self._FORWARD
 
 	def backward (self, duty=DEFAULT_DUTY):
+		#NOTA: vedi forward
+
 #		print "Backward %d" % duty
 		self._pwm_backward.ChangeDutyCycle(100)
 
@@ -107,7 +119,13 @@ class Motor:
 		self._state = self._BACKWARD
 
 	def move (self, speed):
+		"""
+			Imposta la velocità del motore.
 
+			Input:
+			 - speed: velocità compresa tra -100 e 100. Velocità positive
+			   corrispondono ad avanzare, negative ad indietreggiare
+		"""
 		#print "Move %d" % speed
 
 
@@ -118,24 +136,29 @@ class Motor:
 			speed = limit(-speed, 0, 100)
 			self.backward(speed)
 		else:
-			#se stoppo in modalità SC, quando poi riparto ho dei problemi
-			#probabilmente dovuti al fatto che il pwm è simulato con DMA
-			#e perciò ottengo delle accelerazioni indesiderate dovute
-			#al fatto che i buffer dei 2 pwm erano a 1 e non si possono flushare.
-			#Il problema permane se stoppo i pwm, sembra che comunque continui a
-			#mandare fuori bit fino alla fine del buffer
-			#In modalità FL, invece, essendo entrambi i PWM impostati a 0,
-			#non ho problemi
 			self.stop(MODE_SC)
 
 		self._speed = speed
 
 	def move_delta (self, speed_delta):
+		"""
+			Applica un delta alla velocità
+
+			Input:
+			 - speed_delta: delta da applicare
+		"""
 		new_speed = self.getSpeed() + speed_delta
 		self.move(new_speed)
 
 	def stop (self, mode=MODE_SC):
+		"""
+			Ferma il motore (effetto simile a dare move(0))
 
+			Input:
+			 - mode: 	MODE_SC: il motore viene messo con i due terminali in corto: azione frenante
+			 			MODE_FL: il motore viene lasciato floatante: non si genererà una corrispondente
+								 di opposizione al moto e perciò il robot non si fermerà istantaneamente
+		"""
 #		print "Stopped"
 
 
@@ -166,6 +189,15 @@ DX_FW = pinout.MOTOR_DX_FW
 DX_BW = pinout.MOTOR_DX_BW
 
 class MovementController:
+	"""
+		Classe che astrae la coppia di motori che fanno muovere il robot.
+
+		L'astrazione prevede di decidere il movimento con una coppia velocità-rotazione
+
+		La classe è dotata di watchdog: se non riceve comandi per più di self._watchdog_time
+		stoppa il robot per sicurezza. Serve nel caso si esca fuori range bluetooth o se per
+		ogni caso l'applicazione si blocca
+	"""
 
 	def __init__ (self, correction=0):
 		self._MOTOR_DX = Motor(DX_FW, DX_BW)
@@ -176,7 +208,7 @@ class MovementController:
 		self._rotation = 0
 
 		#correzione in % sulla velocità (per farlo andare dritto)
-		self._correction = 0
+		self._correction = correction
 
 		#Dati del watchdog
 		self._watchdog_thread = None
