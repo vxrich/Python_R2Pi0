@@ -189,7 +189,10 @@ try:
 	#distCtrl.setDistance(6)
 	#raw_input("Press Enter to set obstacle back...")
 	#distCtrl.setDistance(0.1)
-	raw_input("Press Enter to exit...")
+	#raw_input("Press Enter to exit...")
+
+	while(True):
+		time.sleep(2)
 except Exception as e:
 	print e
 finally:
