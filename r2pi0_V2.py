@@ -43,6 +43,8 @@ def lst (evt, param):
 	elif evt == me.EVENT_OBSTACLE_DETECTED:
 		player.play("RTTL/Sad.txt")
 		rch.obstacle()
+	elif evt == me.EVENT_BORED_MOVEMENT_STARTED:
+		player.play("RTTL/gnegnegne.txt")
 
 #Funzione chiamata al termine delle attività per chiudere tutti i processi in background
 def end ():

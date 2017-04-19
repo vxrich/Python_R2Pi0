@@ -133,6 +133,7 @@ class MoodedAdapter:
 			if self._bored_movement == None or self._bored_movement.stopped() == True:
 				self._bored_movement = BoredMovementController(self._internalApplyMovement, self._mood_ctrl)
 				self._bored_movement.start()
+				self._fireEvent(me.EVENT_BORED_MOVEMENT_STARTED, None)
 
 	def _fireEvent (self, evt, param):
 		for lst in self._listeners:
