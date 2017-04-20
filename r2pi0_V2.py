@@ -132,10 +132,10 @@ def project (cmd, srv):
 	if projectorOn:
 		projectorLed.setBrigthness(0)
 		projectorOn = False
-	else
+	else:
 		projectorLed.setBrigthness(100)
 		projectorOn = True
-		
+
 	srv.send("ok");
 
 #Callback per il comando exit del server
