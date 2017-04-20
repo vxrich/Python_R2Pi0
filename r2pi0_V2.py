@@ -64,7 +64,7 @@ def end ():
 	moodTimeCtrl.stop()
 	rch.stop()
 	flw.stop()
-	eyectrl.stop()
+	eyeCtrl.stop()
 
 #Contatore per il suono da riprodurre
 i = 0
@@ -129,6 +129,10 @@ def follow (cmd, srv):
 	srv.send("ok");
 
 def project (cmd, srv):
+
+	global projectorOn
+	global projectorLed
+
 	if projectorOn:
 		projectorLed.setBrigthness(0)
 		projectorOn = False
@@ -168,6 +172,8 @@ def distance (evt, param):
 try:
 
 	GPIO.setmode(GPIO.BCM)
+
+
 
 	player.initialize()
 	player.play("RTTL/Beeping1.txt")
