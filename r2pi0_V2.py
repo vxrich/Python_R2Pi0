@@ -13,6 +13,8 @@ import RTTLPlayer as player
 import threading
 import mood
 import UltrasonicSensor
+import leds
+import pinout
 
 OBSTACLE_THRESHOLD = 0.2
 
@@ -30,6 +32,8 @@ rch = None
 flw = None
 #Controllore del sensore di prossimità
 sensorCtrl = None
+#Controllore del led dell'occhio
+eyeCtrl = None
 
 #Listener degli eventi provenienti dal rever
 def srv_lst (evt, param):
@@ -56,6 +60,7 @@ def end ():
 	moodTimeCtrl.stop()
 	rch.stop()
 	flw.stop()
+	eyectrl.stop()
 
 #Contatore per il suono da riprodurre
 i = 0
@@ -150,6 +155,10 @@ try:
 
 	player.initialize()
 	player.play("RTTL/Beeping1.txt")
+
+
+	eyeCtrl = leds.LedEye(leds.RGBLed(pinout.EYE_R, pinout.EYE_G, pinout.EYE_B))
+	eyeCtrl.start()
 
 	moodCtrl = mood.Mood()
 	moodCtrl.addListener(moodCallback)
