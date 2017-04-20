@@ -34,6 +34,10 @@ flw = None
 sensorCtrl = None
 #Controllore del led dell'occhio
 eyeCtrl = None
+#Led del proiettore
+projectorLed = None
+#Stato led proiettore
+projectorOn = False
 
 #Listener degli eventi provenienti dal rever
 def srv_lst (evt, param):
@@ -112,6 +116,7 @@ def set_mode (cmd, srv):
 #Callback per il comando shutup del server
 def shutup (cmd, srv):
 	player.toggleSilence()
+	srv.send("ok");
 
 #Callback per il comando reach del server
 def reach (cmd, srv):
@@ -121,6 +126,17 @@ def reach (cmd, srv):
 #Callback per il comando follow del server
 def follow (cmd, srv):
 	flw.toggle()
+	srv.send("ok");
+
+def project (cmd, srv):
+	if projectorOn:
+		projectorLed.setBrigthness(0)
+		projectorOn = False
+	else
+		projectorLed.setBrigthness(100)
+		projectorOn = True
+		
+	srv.send("ok");
 
 #Callback per il comando exit del server
 def exit (cmd, srv):
@@ -157,8 +173,14 @@ try:
 	player.play("RTTL/Beeping1.txt")
 
 
-	eyeCtrl = leds.LedEye(leds.RGBLed(pinout.EYE_R, pinout.EYE_G, pinout.EYE_B))
+	rgbled = leds.RGBLed(pinout.EYE_R, pinout.EYE_G, pinout.EYE_B)
+	rgbled.initialize()
+
+	eyeCtrl = leds.LedEye(rgbled)
 	eyeCtrl.start()
+
+	projectorLed = leds.Led(pinout.PROJECTOR)
+	projectorLed.initialize()
 
 	moodCtrl = mood.Mood()
 	moodCtrl.addListener(moodCallback)
@@ -188,7 +210,7 @@ try:
 
 
 	#Array associativo che collega il nome dei comandi all'azione da eseguire
-	cmd = {"s": s, "r": r, "sound": sound, "set_mode": set_mode, "exit": exit, "shutup": shutup, "reach": reach, "follow":follow}
+	cmd = {"s": s, "r": r, "sound": sound, "set_mode": set_mode, "exit": exit, "shutup": shutup, "reach": reach, "follow":follow, "project":project}
 
 	mainsrv = server.Server(cmd)
 	mainsrv.start()
